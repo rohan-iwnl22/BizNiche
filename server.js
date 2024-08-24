@@ -2,11 +2,16 @@ const express = require('express');
 require('dotenv').config();
 const app = express();
 
+
 const loginRouter = require('./Routes/loginRoutes');
 const productRouter = require('./Routes/productRouter');
 const orderRouter = require('./Routes/orderRouter');
+const pool = require('./db');
+const categoryRouter = require('./Routes/categoryRouter');
 
 app.use(express.json());
+
+
 
 
 const PORT = process.env.PORT

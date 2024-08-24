@@ -6,3 +6,5 @@ const { createCategory, getCategory } = require('../Controller/categoryControlle
 categoryRouter.post('/', createCategory)
 categoryRouter.get('/', getCategory)
 
+module.exports = categoryRouter
+
