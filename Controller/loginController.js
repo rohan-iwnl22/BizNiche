@@ -20,14 +20,14 @@ const loginController = async (req, res) => {
 
 
         if (rows.length === 0) {
-            res.status(400).json({ message: "invalid username or password" })
+            return res.status(400).json({ message: "invalid username or password" })
         }
 
         const user = rows[0];
         // console.log(user.password);
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) {
-            res.status(400).json({ message: "Invalid username or password" })
+            return res.status(400).json({ message: "Invalid username or password" })
         }
 
         const token = jwt.sign({ userId: user.user_id, email: user.email }, secret, { expiresIn: '4h' })
@@ -53,7 +53,7 @@ const signupController = async (req, res) => {
 
         const { rows } = await pool.query(dupliCheckQuery, [validateData.email]);
         if (rows.length > 0) {
-            res.status(400).json({
+            return res.status(400).json({
                 message: "User Already Exists",
             })
         }

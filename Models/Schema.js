@@ -6,4 +6,9 @@ const userSchema = z.object({
     password: z.string().min(8, "Password must be of atleast 8 characters long")
 })
 
+const storeSchema = z.object({
+    store_name: z.string().min(1, { message: "Store name is required" }),
+    store_description: z.string().optional().default('No description provided')
+});
+
 module.exports = userSchema

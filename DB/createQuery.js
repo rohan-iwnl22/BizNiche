@@ -24,10 +24,11 @@ const productTableQuery = `CREATE TABLE IF NOT EXISTS products (
     product_id SERIAL PRIMARY KEY,
     seller_id INT REFERENCES sellers(seller_id) ON DELETE CASCADE,
     category_name TEXT,  
-    name VARCHAR(100) NOT NULL,
+    name VARCHAR(100) NOT NULL UNIQUE,
     description TEXT,
     price NUMERIC(10, 2) NOT NULL,
     stock INT NOT NULL,
+    image_url TEXT,  -- New column for storing image URL
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );`;
