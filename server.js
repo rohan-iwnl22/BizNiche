@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer')
 const path = require('path')
+const cors = require('cors')
 
 require('dotenv').config();
 
@@ -16,6 +17,7 @@ const authenticate = require('./Middlewares/authenticate');
 const sellerAuthenticate = require('./Middlewares/sellerAuthenticate');
 
 app.use(express.json());
+app.use(cors());
 // app.use(express.urlencoded({ extended: false }))
 // app.use('/Images', express.static('Images'));
 

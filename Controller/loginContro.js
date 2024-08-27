@@ -30,11 +30,12 @@ const loginController = async (req, res) => {
             return res.status(400).json({ message: "Invalid username or password" })
         }
 
-        const token = jwt.sign({ userId: user.user_id, email: user.email }, secret, { expiresIn: '4h' })
+        const token = jwt.sign({ userId: user.user_id, email: user.email, }, secret, { expiresIn: '4h' })
 
         res.status(200).json({
             message: "Logged in successfully",
-            token
+            token,
+            name: user.name
         })
 
     } catch (e) {
@@ -58,13 +59,14 @@ const signupController = async (req, res) => {
             })
         }
 
-        const insertQuery = `INSERT INTO users (name,email,password) VALUES ($1,$2,$3) RETURNING user_id;`
+        const insertQuery = `INSERT INTO users (name,email,password) VALUES ($1,$2,$3) RETURNING user_id,name;`
         const values = [validateData.name, validateData.email, hashedPassword];
         const result = await pool.query(insertQuery, values);
 
         res.status(200).json({
             message: "User Created Successfuly",
             userId: result.rows[0].user_id,
+            name: result.rows[0].name
         });
     } catch (e) {
         if (e instanceof z.ZodError) {

@@ -1,24 +1,25 @@
 const pool = require("../db");
 
 const getProduct = async (req, res) => {
-    const getProductQuery = `SELECT * from products`;
-    const { rows } = await pool.query(getProductQuery);
+    const getProductQuery = `SELECT * FROM products`;
 
-    if (rows.length === 0) {
-        return res.json({ message: "Currently 0 products to display" })
-    }
     try {
+        const { rows } = await pool.query(getProductQuery);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ message: "No products available to display." });
+        }
+
         res.status(200).json({
             products: rows
-        })
-    }
-    catch (e) {
-        console.log(e);
-        res.status(400).json({
+        });
+    } catch (e) {
+        console.error(`Error fetching products: ${e.message}`);
+        res.status(500).json({
             message: "Internal Server Error"
-        })
+        });
     }
-}
+};
 
 const postProduct = async (req, res) => {
     const user_id = req.user.userId;
