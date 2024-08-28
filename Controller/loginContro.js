@@ -11,35 +11,37 @@ const secret = process.env.SECRET
 const loginController = async (req, res) => {
     const { email, password } = req.body;
     try {
-        const checkQuery = `SELECT * FROM users WHERE email = $1;`
-        // console.log(email)
-        // console.log(password)
+        // Check if the user exists
+        const checkQuery = `SELECT * FROM users WHERE email = $1;`;
         const { rows } = await pool.query(checkQuery, [email]);
-        // console.log(`Rows Size: ${rows.length}`);
-        // console.log(`Query Results: ${rows}`);
-
 
         if (rows.length === 0) {
-            return res.status(400).json({ message: "invalid username or password" })
+            return res.status(400).json({ message: "Invalid username or password" });
         }
 
         const user = rows[0];
-        // console.log(user.password);
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) {
-            return res.status(400).json({ message: "Invalid username or password" })
+            return res.status(400).json({ message: "Invalid username or password" });
         }
 
-        const token = jwt.sign({ userId: user.user_id, email: user.email, }, secret, { expiresIn: '4h' })
+        const token = jwt.sign({ userId: user.user_id, email: user.email }, secret, { expiresIn: '4h' });
+
+        // Check if the user is a seller
+        const userSellerCheckQuery = `SELECT * FROM sellers WHERE user_id = $1`;
+        const sellerResponse = await pool.query(userSellerCheckQuery, [user.user_id]);
+
+        const seller = sellerResponse.rows.length > 0 ? sellerResponse.rows[0] : null;
 
         res.status(200).json({
             message: "Logged in successfully",
             token,
-            name: user.name
-        })
+            name: user.name,
+            seller // Include seller info if available
+        });
 
     } catch (e) {
-        res.status(500).json({ message: `An unknown error occured ${e.message}` })
+        res.status(500).json({ message: `An unknown error occurred ${e.message}` });
     }
 }
 

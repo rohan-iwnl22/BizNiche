@@ -5,31 +5,27 @@ const sellerController = async (req, res) => {
     const user_id = req.user.userId;
 
     try {
-
-        const existQuery = `SELECT * FROM sellers WHERE user_id = ($1)`
+        // Check if the user already has a store
+        const existQuery = `SELECT * FROM sellers WHERE user_id = $1`;
         const { rows } = await pool.query(existQuery, [user_id]);
         if (rows.length > 0) {
-            return res.status(400).json({ message: "A user can setup only one store" })
+            return res.status(400).json({ message: "A user can set up only one store" });
         }
 
-        const values = [user_id, store_name, store_description, contact_info]
-
-        const createSellerQuery = `INSERT INTO sellers (user_id,store_name,store_description,contact_info) VALUES ($1,$2,$3,$4) RETURNING * `;
-
+        // Insert new seller information
+        const values = [user_id, store_name, store_description, contact_info];
+        const createSellerQuery = `INSERT INTO sellers (user_id, store_name, store_description, contact_info) VALUES ($1, $2, $3, $4) RETURNING *`;
         const result = await pool.query(createSellerQuery, values);
-
         const newSeller = result.rows[0];
 
         res.status(200).json({
             message: "Seller Created Successfully",
             seller: newSeller,
         });
-    }
-    catch (e) {
+    } catch (e) {
         console.log(e);
-        res.status(500).json({ message: `An unknown error occured ${e.message}` });
+        res.status(500).json({ message: `Error: ${e.message}` });
     }
 }
 
-
-module.exports = sellerController
+module.exports = sellerController;
