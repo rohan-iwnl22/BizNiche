@@ -24,22 +24,34 @@ const getProduct = async (req, res) => {
 const postProduct = async (req, res) => {
     const user_id = req.user.userId;
 
-    const { category_name, name, description, price, stock, image_url } = req.body;
+    const { category_name, name, description, price, stock, image_url, seller_id } = req.body;
 
-    if (!category_name || !name || !description || !price || !stock || !image_url) {
+    if (!category_name || !name || !description || !price || !stock || !image_url || !seller_id) {
         return res.status(400).json({
-            message: "Please Make sure all the entries are filled"
-        })
+            message: "Please make sure all fields are filled and seller ID is provided."
+        });
     }
 
     if (isNaN(price) || isNaN(stock) || price <= 0 || stock < 0) {
         return res.status(400).json({
-            message: "Price must be a positive number and stock should be a non-negative number"
-        })
+            message: "Price must be a positive number and stock should be a non-negative number."
+        });
     }
+
     try {
-        const insertQuery = `INSERT INTO products (seller_id,category_name,name,description,price,stock,image_url) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`;
-        const values = [user_id, category_name, name, description, price, stock, image_url];
+        // Check if the seller ID exists in the sellers table
+        const sellerResult = await pool.query('SELECT * FROM sellers WHERE seller_id = $1', [seller_id]);
+
+        if (sellerResult.rows.length === 0) {
+            return res.status(400).json({
+                message: "Invalid seller ID."
+            });
+        }
+
+        // Proceed with inserting the product
+        const insertQuery = `INSERT INTO products (seller_id, category_name, name, description, price, stock, image_url)
+            VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`;
+        const values = [seller_id, category_name, name, description, price, stock, image_url];
 
         const result = await pool.query(insertQuery, values);
 
@@ -48,12 +60,12 @@ const postProduct = async (req, res) => {
         res.status(200).json({
             message: "Product Created Successfully",
             product: newProduct
-        })
+        });
     } catch (e) {
-        console.log(`Error creating product : ${e}`)
-        res.status(500).json({ message: `${e.message}` })
+        console.log(`Error creating product: ${e}`);
+        res.status(500).json({ message: `${e.message}` });
     }
-}
+};
 
 const getSingleProduct = async (req, res) => {
     const productId = req.params.id;

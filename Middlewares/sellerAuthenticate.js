@@ -2,7 +2,7 @@ const pool = require("../db");
 
 const sellerAuthenticate = async (req, res, next) => {
     if (!req.user) {
-        return res.status(401).status({ message: "Un-Authorised" })
+        return res.status(401).json({ message: "Unauthorized" });
     }
 
     const userId = req.user.userId;
@@ -15,8 +15,8 @@ const sellerAuthenticate = async (req, res, next) => {
         }
 
         req.seller = result.rows[0];
-        next()
-    } catch (e) {
+        next();
+    } catch (error) {
         console.error('Error checking seller status:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }

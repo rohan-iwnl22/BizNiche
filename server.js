@@ -18,8 +18,8 @@ const sellerAuthenticate = require('./Middlewares/sellerAuthenticate');
 
 app.use(express.json());
 app.use(cors());
-// app.use(express.urlencoded({ extended: false }))
-// app.use('/Images', express.static('Images'));
+app.use(express.urlencoded({ extended: false }))
+app.use('/Images', express.static('Images'));
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -32,13 +32,16 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage })
 
-app.post('/upload', upload.single('image'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ message: "no file upload" })
+app.post('/upload', upload.array('images', 10), (req, res) => { // Adjust '10' to the maximum number of files you expect
+    if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ message: "No files uploaded" });
     }
-    const imageUrl = `http://localhost:3030/Images/${req.file.filename}`
-    res.status(200).json({ imageUrl });
-})
+
+    // Generate URLs for each uploaded file
+    const imageUrls = req.files.map(file => `http://localhost:3030/Images/${file.filename}`);
+    console.log(imageUrls)
+    res.status(200).json({ imageUrls });
+});
 
 
 const PORT = process.env.PORT
