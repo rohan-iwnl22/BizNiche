@@ -39,7 +39,6 @@ app.post('/upload', upload.array('images', 10), (req, res) => { // Adjust '10' t
 
     // Generate URLs for each uploaded file
     const imageUrls = req.files.map(file => `http://localhost:3030/Images/${file.filename}`);
-    console.log(imageUrls)
     res.status(200).json({ imageUrls });
 });
 

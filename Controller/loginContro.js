@@ -35,7 +35,7 @@ const loginController = async (req, res) => {
 
         res.status(200).json({
             message: "Logged in successfully",
-            token,
+            token: token,
             name: user.name,
             seller // Include seller info if available
         });
