@@ -1,5 +1,6 @@
 const pool = require("../db");
 
+
 const getProduct = async (req, res) => {
     const getProductQuery = `SELECT * FROM products`;
 
@@ -24,7 +25,7 @@ const getProduct = async (req, res) => {
 const postProduct = async (req, res) => {
     const user_id = req.user.userId;
 
-    const { category_name, name, description, price, stock, image_url, seller_id } = req.body;
+    const { category_name, name, description, price, stock, npe_url, seller_id } = req.body;
 
     if (!category_name || !name || !description || !price || !stock || !image_url || !seller_id) {
         return res.status(400).json({
