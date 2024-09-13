@@ -26,27 +26,52 @@ const getOrder = async (req, res) => {
 }
 
 const postOrder = async (req, res) => {
-    const { product_id, quantity, payment_method } = req.body;
+    const { items } = req.body;
     const buyer_id = req.user.userId;
+
+    console.log("Received items:", items);
+    console.log("Buyer ID:", buyer_id);
 
     try {
         await pool.query('BEGIN');
 
-        const productQuery = 'SELECT price, stock FROM products WHERE product_id = $1 FOR UPDATE';
-        const productResult = await pool.query(productQuery, [product_id]);
+        let total_price = 0;
+        const paymentInfos = [];
 
-        if (productResult.rows.length === 0) {
-            return res.status(404).json({ message: "Product Not Found" });
+        // Loop through each item to process the order
+        for (const item of items) {
+            const { product_id, quantity } = item;
+
+            console.log(`Processing Product ID: ${product_id}, Quantity: ${quantity}`);
+
+            // Query product details
+            const productQuery = 'SELECT price, stock, name FROM products WHERE product_id = $1 FOR UPDATE';
+            const productResult = await pool.query(productQuery, [product_id]);
+
+            if (productResult.rows.length === 0) {
+                await pool.query('ROLLBACK');
+                return res.status(404).json({ message: `Product ${product_id} Not Found` });
+            }
+
+            const { price, stock, name } = productResult.rows[0];
+
+            if (stock < quantity) {
+                await pool.query('ROLLBACK');
+                return res.status(400).json({ message: `Insufficient Stock for ${name}` });
+            }
+
+            // Accumulate total price
+            total_price += price * quantity;
+
+            // Prepare payment info for this item
+            paymentInfos.push({
+                product_id,
+                quantity,
+                price,
+            });
         }
 
-        const { price, stock } = productResult.rows[0];
-
-        if (stock < quantity) {
-            return res.status(400).json({ message: "Insufficient Stock" });
-        }
-
-        const total_price = price * quantity;
-
+        // Create Razorpay order
         const razorpay = new Razorpay({
             key_id: process.env.RAZORPAY_KEY_ID,
             key_secret: process.env.RAZORPAY_KEY_SECRET,
@@ -70,19 +95,23 @@ const postOrder = async (req, res) => {
             created_at: razorpayOrder.created_at
         };
 
-        const insertOrderQuery = `
-            INSERT INTO orders (buyer_id, product_id, quantity, total_price, status, payment_info)
-            VALUES ($1, $2, $3, $4, 'pending', $5)
-            RETURNING *;
-        `;
-        const orderValues = [buyer_id, product_id, quantity, total_price, JSON.stringify(paymentInfo)];
-        const orderResult = await pool.query(insertOrderQuery, orderValues);
+        // Insert orders into the database
+        for (const item of items) {
+            const { product_id, quantity } = item;
+
+            const insertOrderQuery = `
+                INSERT INTO orders (buyer_id, product_id, quantity, total_price, status, payment_info)
+                VALUES ($1, $2, $3, $4, 'pending', $5)
+                RETURNING *;
+            `;
+            const orderValues = [buyer_id, product_id, quantity, total_price, JSON.stringify(paymentInfo)];
+            await pool.query(insertOrderQuery, orderValues);
+        }
 
         await pool.query('COMMIT');
 
         res.status(200).json({
             message: "Order Initiated Successfully",
-            order: orderResult.rows[0],
             razorpayOrderId: razorpayOrder.id,
         });
 
@@ -95,6 +124,7 @@ const postOrder = async (req, res) => {
         });
     }
 };
+
 
 const verifyPayment = async (req, res) => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
@@ -150,25 +180,6 @@ const verifyPayment = async (req, res) => {
     }
 };
 
-const getSingleOrder = async (req, res) => {
-    const { id: order_id } = req.params;
-    try {
-        const singleOrderQuery = `SELECT * FROM orders WHERE order_id = $1`;
-        const result = await pool.query(singleOrderQuery, [order_id]);
-        if (result.rows.length === 0) {
-            return res.status(400).json({
-                message: "Invalid Order-Id"
-            })
-        }
-        res.status(200).json({
-            orders: result.rows[0]
-        })
-    } catch (error) {
-        console.log(error.message)
-        res.status(500).json({ message: "Some unknown error occured", error: error.message })
-    }
-}
-
 const orderStatus = async (req, res) => {
     const { id: order_id } = req.params;
     console.log(`Order_Id: ${order_id}`)
@@ -201,7 +212,6 @@ const orderStatus = async (req, res) => {
 module.exports = {
     getOrder,
     postOrder,
-    getSingleOrder,
     orderStatus,
     verifyPayment
 }
