@@ -1,5 +1,30 @@
 const pool = require("../db");
 
+const getProductBySeller = async (req, res) => {
+    const seller_id = req.seller.seller_id;
+
+    try {
+
+        const result = await pool.query(`
+            SELECT COUNT(*) AS number_of_items
+            FROM products
+            WHERE seller_id = $1
+        `, [seller_id]);
+
+        const numberOfItems = parseInt(result.rows[0].number_of_items, 10);
+
+        res.status(200).json({
+            message: "Number of items retrieved successfully",
+            items: numberOfItems
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
 
 const getProduct = async (req, res) => {
     const getProductQuery = `SELECT * FROM products`;
@@ -25,7 +50,7 @@ const getProduct = async (req, res) => {
 const postProduct = async (req, res) => {
     const user_id = req.user.userId;
 
-    const { category_name, name, description, price, stock, npe_url, seller_id } = req.body;
+    const { category_name, name, description, price, stock, image_url, seller_id } = req.body;
 
     if (!category_name || !name || !description || !price || !stock || !image_url || !seller_id) {
         return res.status(400).json({
@@ -160,5 +185,5 @@ const deleteProduct = async (req, res) => {
 }
 
 module.exports = {
-    getProduct, postProduct, getSingleProduct, updateProduct, deleteProduct
+    getProduct, postProduct, getSingleProduct, updateProduct, deleteProduct, getProductBySeller
 }

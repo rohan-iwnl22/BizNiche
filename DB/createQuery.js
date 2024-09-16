@@ -37,6 +37,7 @@ const productTableQuery = `CREATE TABLE IF NOT EXISTS products (
 const orderTableQuery = `CREATE TABLE IF NOT EXISTS orders (
     order_id SERIAL PRIMARY KEY,
     buyer_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+    seller_id INT REFERENCES sellers(seller_id) ON DELETE CASCADE,  -- New column to reference the seller
     product_id INT REFERENCES products(product_id) ON DELETE CASCADE,
     quantity INT NOT NULL,
     total_price NUMERIC(10, 2) NOT NULL,
