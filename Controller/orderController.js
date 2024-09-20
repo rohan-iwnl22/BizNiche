@@ -44,24 +44,48 @@ const getAllOrder = async (req, res) => {
 
 const getOrder = async (req, res) => {
     const user_id = req.user.userId;
-    const checkQuery = `SELECT * FROM orders WHERE buyer_id = $1`;
+
+    // Updated query to join orders with products
+    const checkQuery = `
+        SELECT
+            o.order_id,
+            o.buyer_id,
+            o.seller_id,
+            o.product_id,
+            o.quantity,
+            o.total_price,
+            o.status,
+            o.payment_info,
+            o.created_at,
+            o.updated_at,
+            p.name AS product_name,
+            p.image_url AS product_image_url
+        FROM
+            orders o
+        JOIN
+            products p ON o.product_id = p.product_id
+        WHERE
+            o.buyer_id = $1
+    `;
 
     try {
         const result = await pool.query(checkQuery, [user_id]);
+
         if (result.rows.length === 0) {
-            return res.status(400).json({ message: "item once purchased will be displayed here" })
+            return res.status(400).json({ message: "Item once purchased will be displayed here" });
         }
-        const finalResult = result.rows[0];
+
         res.status(200).json({
-            your_orders: finalResult
-        })
+            your_orders: result.rows
+        });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         res.status(500).json({
-            message: `An unknown error occured: ${error.message}`
-        })
+            message: `An unknown error occurred: ${error.message}`
+        });
     }
-}
+};
+
 
 const postOrder = async (req, res) => {
     const { items } = req.body;
@@ -80,7 +104,7 @@ const postOrder = async (req, res) => {
         for (const item of items) {
             const { product_id, quantity } = item;
 
-            console.log(`Processing Product ID: ${product_id}, Quantity: ${quantity}`);
+            // console.log(`Processing Product ID: ${product_id}, Quantity: ${quantity}`);
 
             // Query product details along with the seller_id
             const productQuery = `
@@ -191,8 +215,8 @@ const verifyPayment = async (req, res) => {
         .update(body.toString())
         .digest('hex');
 
-    console.log("Generated Signature: ", generatedSignature);
-    console.log("Expected Signature: ", razorpay_signature);
+    // console.log("Generated Signature: ", generatedSignature);
+    // console.log("Expected Signature: ", razorpay_signature);
 
     if (generatedSignature === razorpay_signature) {
         try {
