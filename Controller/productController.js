@@ -94,21 +94,33 @@ const postProduct = async (req, res) => {
 };
 
 const getSingleProduct = async (req, res) => {
-    const productId = req.params.id;
-    try {
-        const singleProductQuery = `SELECT * FROM products WHERE product_id = ($1)`
-        const result = await pool.query(singleProductQuery, [productId])
-        if (result.rows.length === 0) {
-            return res.status(401).json({ message: "Product does not exits" })
-        }
-        res.status(200).json(result.rows[0])
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({
-            message: "Internal Server Error"
-        })
+    // Ensure productId is an integer
+    const productId = parseInt(req.params.id, 10);
+
+    // Validate productId
+    if (isNaN(productId)) {
+        return res.status(400).json({ message: "Invalid Product ID" });
     }
-}
+
+    try {
+        // Query to fetch the single product
+        const singleProductQuery = `SELECT * FROM products WHERE product_id = $1`;
+        const result = await pool.query(singleProductQuery, [productId]);
+
+        // Check if product exists
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: "Product does not exist" });
+        }
+
+        // Return the product data
+        res.status(200).json(result.rows[0]);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Internal Server Error",
+        });
+    }
+};
 
 const updateProduct = async (req, res) => {
     const productId = req.params.id;
@@ -184,6 +196,48 @@ const deleteProduct = async (req, res) => {
     }
 }
 
+const bestSelling = async (req, res) => {
+    const bestSellingQuery = `
+      SELECT 
+        p.product_id,
+        p.seller_id,
+        p.category_name,
+        p.name AS product_name,
+        p.price,
+        p.image_url,
+        SUM(o.total_price) AS total_revenue
+      FROM 
+        products p
+      JOIN 
+        orders o ON p.product_id = o.product_id
+      WHERE 
+        o.status IN ('shipped', 'delivered')
+      GROUP BY 
+        p.product_id, p.seller_id, p.category_name, p.name, p.price, p.image_url
+      ORDER BY 
+        total_revenue DESC;
+    `;
+
+    try {
+        const { rows } = await pool.query(bestSellingQuery);  // No parameters being passed here
+
+        // Send the result back to the client
+        res.status(200).json({
+            success: true,
+            data: rows,
+        });
+    } catch (error) {
+        console.error("Error fetching best-selling products:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Error fetching best-selling products",
+        });
+    }
+};
+
+
+
 module.exports = {
-    getProduct, postProduct, getSingleProduct, updateProduct, deleteProduct, getProductBySeller
+    getProduct, postProduct, getSingleProduct, updateProduct, deleteProduct, getProductBySeller, bestSelling
 }
