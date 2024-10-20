@@ -4,9 +4,9 @@ Marketplace platform tailored for startups, allowing them to easily find and pur
 
 !! Important While Settiing Up PG DB locally or in cloud !!
 
-1. sometimes the could connection string will connect at the first try if it did so ignore the following steps
+1. Sometimes the could connection string will connect at the first try if it did so ignore the following steps
 
-### YOUR POSTGRES CONNECTION STRING LOOKS LIKE:
+###YOUR POSTGRES CONNECTION STRING LOOKS LIKE:
 
 ## postgresql://[username]:[password]@[host]:[server]/[database]
 
