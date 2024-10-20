@@ -8,7 +8,7 @@ Marketplace platform tailored for startups, allowing them to easily find and pur
 
 ### YOUR POSTGRES CONNECTION STRING LOOKS LIKE:
 
-## postgresql://[username]:[password]@[host]:[server]/[database]
+## ` postgresql://[username]:[password]@[host]:[server]/[database] `
 
 2. If your cloud connection string of postgres failed connecting change these two in your pg_bha.config file.
    ![alt text](image.png)
