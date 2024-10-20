@@ -6,8 +6,7 @@ Marketplace platform tailored for startups, allowing them to easily find and pur
 
 1. Sometimes the could connection string will connect at the first try if it did so ignore the following steps
 
-### YOUR POSTGRES CONNECTION STRING LOOKS LIKE:
-
+## YOUR POSTGRES CONNECTION STRING LOOKS LIKE:
 ## ` postgresql://[username]:[password]@[host]:[server]/[database] `
 
 2. If your cloud connection string of postgres failed connecting change these two in your pg_bha.config file.
