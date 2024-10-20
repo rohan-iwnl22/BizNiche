@@ -2,7 +2,7 @@
 
 Marketplace platform tailored for startups, allowing them to easily find and purchase essential items from various sellers.
 
-!! Important While Settiing Up PG DB locally or in cloud !!
+## !! Important While Settiing Up PG DB locally or in cloud !!
 
 1. Sometimes the could connection string will connect at the first try if it did so ignore the following steps
 
