@@ -237,7 +237,6 @@ const bestSelling = async (req, res) => {
 };
 
 
-
 module.exports = {
     getProduct, postProduct, getSingleProduct, updateProduct, deleteProduct, getProductBySeller, bestSelling
 }
